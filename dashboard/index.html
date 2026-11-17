@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token Radar: pre-token protocols ranked by implied value</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <p class="eyebrow">Token radar &middot; snapshot <span id="asof"></span></p>
+    <h1>Which pre-token protocol is worth farming?</h1>
+    <p class="lede">Every protocol below records no token in the snapshot. Each is ranked by an implied
+    value: what its token would be worth if it launched one today, worked out from the market's own
+    prices for tokens in the same line of business. Click any row for its farm plan.</p>
+    <dl class="stats">
+      <div><dt>Board rows</dt><dd id="stat-rows"></dd></div>
+      <div><dt>Watchlist covered</dt><dd id="stat-watch"></dd></div>
+      <div><dt>Total implied value</dt><dd id="stat-total"></dd></div>
+      <div><dt>Median implied value</dt><dd id="stat-median"></dd></div>
+    </dl>
+  </div>
+</header>
+<main class="wrap">
+  <section class="model" id="model">
+    <h2>How the value is worked out</h2>
+    <p>For each category, the model takes the median market-cap-to-TVL ratio of the snapshot's own
+    live-token protocols in that category (three or more of them, else the median across all
+    live-token protocols, <strong id="model-global"></strong>). A protocol's base value is its TVL
+    times its category's ratio. Two adjustments follow, both from the snapshot's own figures:</p>
+    <ol class="formula">
+      <li><strong>Growth.</strong> The 7-day TVL change, clamped to &minus;50% &hellip; +100%, feeds a
+      factor of 1 + change &times; 0.6. A rising protocol is worth more; a falling one is trimmed.</li>
+      <li><strong>Tenure.</strong> The longer a protocol has run with no token, the more value has
+      accrued before any launch: a factor of 1 + (days with no token, capped at 4 years) &divide;
+      4 years &times; 0.5. A protocol with no listing date is scored at 365 days.</li>
+    </ol>
+    <p class="fine">Implied value = TVL &times; category ratio &times; growth factor &times; tenure
+    factor, at least $1 and at most $50bn. It is this entry's claim, not a prediction: it does not
+    say a token will be issued, or when. A protocol that records no token may still have one its
+    DefiLlama record does not carry.</p>
+  </section>
+
+  <nav class="tabs" aria-label="Views">
+    <button type="button" id="tab-board" class="active" aria-pressed="true">Pre-token board</button>
+    <button type="button" id="tab-live" aria-pressed="false">Already trading</button>
+  </nav>
+
+  <section id="board-view">
+    <form class="filters" id="filters">
+      <label>Search <input type="search" id="q" placeholder="Name or slug" autocomplete="off"></label>
+      <label>Chain <select id="chain"><option value="">All chains</option></select></label>
+      <label>Category <select id="category"><option value="">All categories</option></select></label>
+      <label>Min TVL <select id="min-tvl">
+        <option value="0">Any</option><option value="5000000">$5m</option>
+        <option value="50000000">$50m</option><option value="250000000">$250m</option>
+        <option value="1000000000">$1bn</option></select></label>
+      <label>Min implied value <select id="min-value">
+        <option value="0">Any</option><option value="1000000">$1m</option>
+        <option value="10000000">$10m</option><option value="50000000">$50m</option>
+        <option value="100000000">$100m</option></select></label>
+      <label>Sort by <select id="sort">
+        <option value="rank">Rank</option><option value="value">Implied value</option>
+        <option value="tvl">TVL</option><option value="change">7-day change</option>
+        <option value="age">Age</option></select></label>
+      <button type="button" id="clear">Clear filters</button>
+    </form>
+    <p class="count" id="count" role="status"></p>
+    <div class="table-wrap">
+      <table id="board">
+        <thead><tr>
+          <th scope="col">#</th><th scope="col">Protocol</th><th scope="col">Category</th>
+          <th scope="col">Chains</th><th scope="col" class="num">TVL</th>
+          <th scope="col" class="num">7d</th><th scope="col" class="num">Implied value</th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="live-view" hidden>
+    <p class="fine">These protocols already trade, so the board shows the market's own value for them:
+    their market cap, not a model's implied value. They are kept apart from the pre-token board.</p>
+    <div class="table-wrap">
+      <table id="live">
+        <thead><tr>
+          <th scope="col">Protocol</th><th scope="col">Category</th><th scope="col">Chains</th>
+          <th scope="col" class="num">TVL</th><th scope="col" class="num">Market cap</th>
+          <th scope="col" class="num">7d</th>
+        </tr></thead>
+        <tbody id="live-rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="detail" class="detail" hidden aria-live="polite"></section>
+</main>
+<footer class="wrap fine">
+  <p>Source: <span id="source"></span>. Data is a frozen snapshot; nothing on this page fetches
+  anything. Farm plans are a starting point, not advice: they promise no token and no airdrop.</p>
+</footer>
+<script src="../data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
