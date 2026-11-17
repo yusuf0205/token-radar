@@ -44,6 +44,7 @@
   var sorted = rows.map(function (r) { return r.implied_value_usd; }).sort(function (a, b) { return a - b; });
   $('stat-median').textContent = money(sorted[Math.floor(sorted.length / 2)]);
   $('model-global').textContent = R.global_ratio.toFixed(3);
+  $('model-momentum').textContent = (R.global_momentum_pct > 0 ? '+' : '') + R.global_momentum_pct.toFixed(2) + '%';
   $('source').textContent = R.source;
 
   // ---- filter dropdowns
@@ -71,12 +72,14 @@
     var cat = $('category').value;
     var minTvl = Number($('min-tvl').value);
     var minVal = Number($('min-value').value);
+    var watchOnly = $('watchlist-only').checked;
     var out = rows.filter(function (r) {
       if (q && r.name.toLowerCase().indexOf(q) === -1 && r.slug.toLowerCase().indexOf(q) === -1) return false;
       if (chain && r.chains.indexOf(chain) === -1) return false;
       if (cat && r.category !== cat) return false;
       if (r.tvl_usd < minTvl) return false;
       if (r.implied_value_usd < minVal) return false;
+      if (watchOnly && !r.on_watchlist) return false;
       return true;
     });
     var sort = $('sort').value;
@@ -100,16 +103,20 @@
   function render() {
     var list = filtered();
     $('count').textContent = list.length + ' of ' + rows.length + ' protocols shown.';
+    var top = rows.length > 0 ? rows[0].implied_value_usd : 1;
     var html = list.map(function (r) {
       var tags = r.chains.map(function (c) { return '<span class="tag">' + esc(c) + '</span>'; }).join('');
+      var badge = r.on_watchlist ? ' <span class="watch" title="On the snapshot watchlist">watchlist</span>' : '';
+      var bar = Math.max(2, Math.round(100 * r.implied_value_usd / top));
       return '<tr data-slug="' + esc(r.slug) + '"' + (r.slug === selectedSlug ? ' class="selected"' : '') + '>' +
         '<td>' + r.rank + '</td>' +
-        '<td><span class="name">' + esc(r.name) + '</span><span class="slug">' + esc(r.slug) + '</span></td>' +
+        '<td><span class="name">' + esc(r.name) + '</span>' + badge + '<span class="slug">' + esc(r.slug) + '</span></td>' +
         '<td>' + esc(r.category || 'n/a') + '</td>' +
         '<td>' + tags + '</td>' +
         '<td class="num">' + money(r.tvl_usd) + '</td>' +
         changeCell(r.change_7d) +
-        '<td class="num value">' + money(r.implied_value_usd) + '</td></tr>';
+        '<td class="num value">' + money(r.implied_value_usd) +
+        '<span class="bar"><span style="width:' + bar + '%"></span></span></td></tr>';
     }).join('');
     $('rows').innerHTML = html || '<tr><td colspan="7">No protocols match these filters.</td></tr>';
   }
@@ -128,17 +135,28 @@
       ' &middot; ' + r.chains.map(esc).join(', ') +
       ' &middot; TVL ' + moneyFull(r.tvl_usd) +
       ' &middot; 7-day change ' + pct(r.change_7d) +
-      ' &middot; listed ' + (r.listed_at || 'unknown') + ' (' + ageText(r.age_days) + ')</p>' +
+      ' &middot; listed ' + (r.listed_at || 'unknown') + ' (' + ageText(r.age_days) + ')' +
+      (r.on_watchlist ? ' &middot; on the snapshot watchlist' : '') + '</p>' +
       '<h3>Implied value: ' + moneyFull(r.implied_value_usd) + '</h3>' +
+      '<p class="formula-line">' + moneyFull(base) + ' base &times; ' + r.growth_factor.toFixed(4) +
+      ' growth &times; ' + r.tenure_factor.toFixed(4) + ' tenure &times; ' + r.breadth_factor.toFixed(4) +
+      ' breadth &times; ' + r.leadership_factor.toFixed(4) + ' leadership &times; ' +
+      r.momentum_factor.toFixed(4) + ' momentum = ' + moneyFull(r.implied_value_usd) + '</p>' +
       '<dl class="breakdown">' +
       '<div><dt>Base (TVL &times; ratio)</dt><dd>' + moneyFull(base) + '</dd></div>' +
       '<div><dt>Category ratio (' + r.ratio_source + ')</dt><dd>' + r.category_ratio.toFixed(3) + '</dd></div>' +
       '<div><dt>Growth factor</dt><dd>' + r.growth_factor.toFixed(3) + '</dd></div>' +
       '<div><dt>Tenure factor</dt><dd>' + r.tenure_factor.toFixed(3) + '</dd></div>' +
+      '<div><dt>Breadth factor (' + r.chains.length + ' chain' + (r.chains.length === 1 ? '' : 's') + ')</dt><dd>' + r.breadth_factor.toFixed(3) + '</dd></div>' +
+      '<div><dt>Leadership factor (' + (r.category_share * 100).toFixed(1) + '% of category TVL)</dt><dd>' + r.leadership_factor.toFixed(3) + '</dd></div>' +
+      '<div><dt>Momentum factor (' + r.momentum_source + ' ' + pct(r.category_momentum_pct) + ')</dt><dd>' + r.momentum_factor.toFixed(3) + '</dd></div>' +
+      '<div><dt>Farm plan</dt><dd>' + r.farm_steps.length + ' steps</dd></div>' +
       '</dl>' +
       '<p class="fine">The ratio comes from the median market-cap-to-TVL of live-token protocols in the ' +
       esc(r.category || 'same') + ' category' +
       (r.ratio_source === 'global' ? ' (too few live-token protocols in this category, so the global median is used)' : '') +
+      '. The momentum figure is the median 7-day change of live-token protocols in that category' +
+      (r.momentum_source === 'global' ? ' (too few to measure, so the global median is used)' : '') +
       '. This protocol records no token in the snapshot.</p>' +
       '<h3>Farm plan</h3>' +
       '<ol class="steps">' + steps + '</ol>' +
@@ -154,7 +172,7 @@
     if (tr) showDetail(tr.getAttribute('data-slug'));
   });
 
-  ['q', 'chain', 'category', 'min-tvl', 'min-value', 'sort'].forEach(function (id) {
+  ['q', 'chain', 'category', 'min-tvl', 'min-value', 'sort', 'watchlist-only'].forEach(function (id) {
     $(id).addEventListener('input', render);
     $(id).addEventListener('change', render);
   });
@@ -165,6 +183,7 @@
     $('min-tvl').value = '0';
     $('min-value').value = '0';
     $('sort').value = 'rank';
+    $('watchlist-only').checked = false;
     render();
   });
 

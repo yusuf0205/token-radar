@@ -28,18 +28,32 @@
     <p>For each category, the model takes the median market-cap-to-TVL ratio of the snapshot's own
     live-token protocols in that category (three or more of them, else the median across all
     live-token protocols, <strong id="model-global"></strong>). A protocol's base value is its TVL
-    times its category's ratio. Two adjustments follow, both from the snapshot's own figures:</p>
+    times its category's ratio. Five adjustments follow, all from the snapshot's own figures:</p>
     <ol class="formula">
       <li><strong>Growth.</strong> The 7-day TVL change, clamped to &minus;50% &hellip; +100%, feeds a
       factor of 1 + change &times; 0.6. A rising protocol is worth more; a falling one is trimmed.</li>
       <li><strong>Tenure.</strong> The longer a protocol has run with no token, the more value has
       accrued before any launch: a factor of 1 + (days with no token, capped at 4 years) &divide;
       4 years &times; 0.5. A protocol with no listing date is scored at 365 days.</li>
+      <li><strong>Breadth.</strong> Each extra chain a protocol runs on adds 0.04, up to five extra
+      chains: more chains means more users and more integrations for a token to serve.</li>
+      <li><strong>Leadership.</strong> The protocol's share of its category's total TVL, capped at
+      one half, feeds a factor of 1 + share &times; 0.25: the category leader's launch matters most.</li>
+      <li><strong>Momentum.</strong> The median 7-day change of live-token protocols in the same
+      category, clamped to &minus;20% &hellip; +50%, feeds a factor of 1 + change &times; 0.3. A
+      category with too few live-token protocols takes the global median,
+      <strong id="model-momentum"></strong>. A rising category lifts its pre-token members.</li>
     </ol>
-    <p class="fine">Implied value = TVL &times; category ratio &times; growth factor &times; tenure
-    factor, at least $1 and at most $50bn. It is this entry's claim, not a prediction: it does not
-    say a token will be issued, or when. A protocol that records no token may still have one its
-    DefiLlama record does not carry.</p>
+    <p class="fine">Implied value = TVL &times; category ratio &times; growth &times; tenure &times;
+    breadth &times; leadership &times; momentum, at least $1 and at most $50bn. It is this entry's
+    claim, not a prediction: it does not say a token will be issued, or when. A protocol that
+    records no token may still have one its DefiLlama record does not carry.</p>
+    <p class="fine">The board ranks every launch candidate the snapshot holds: all 40 protocols on
+    its watchlist, plus every other candidate above and below the $50m floor. Left out are the
+    records that are not launches at all: centralised exchanges, bridges, versioned pools, and
+    wrapped or staked products of tokens that already trade, such as wrapped Bitcoin and
+    bridged stablecoins. They hold large TVL, but they are not protocols waiting on a token of
+    their own.</p>
   </section>
 
   <nav class="tabs" aria-label="Views">
@@ -64,6 +78,7 @@
         <option value="rank">Rank</option><option value="value">Implied value</option>
         <option value="tvl">TVL</option><option value="change">7-day change</option>
         <option value="age">Age</option></select></label>
+      <label class="check"><input type="checkbox" id="watchlist-only"> Watchlist only</label>
       <button type="button" id="clear">Clear filters</button>
     </form>
     <p class="count" id="count" role="status"></p>

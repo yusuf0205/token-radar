@@ -54,6 +54,8 @@ h2 { font-size: 20px; margin: 0 0 10px; }
   background: transparent; color: var(--cyan); border: 1px solid var(--line);
   border-radius: 6px; padding: 8px 14px; font: inherit; cursor: pointer;
 }
+.filters label.check { flex-direction: row; align-items: center; gap: 6px; text-transform: none; letter-spacing: 0; font-size: 14px; color: var(--text); padding-bottom: 8px; }
+.filters label.check input { accent-color: var(--amber); width: 16px; height: 16px; }
 .count { color: var(--muted); margin: 0 0 10px; }
 .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); }
 table { width: 100%; border-collapse: collapse; background: var(--panel); font-size: 14px; }
@@ -76,6 +78,15 @@ tbody tr.selected { background: #22314e; }
 .up { color: var(--green); }
 .down { color: var(--red); }
 .value { color: var(--amber); font-weight: 700; }
+.bar { display: block; height: 4px; background: var(--line); border-radius: 2px; margin-top: 5px; overflow: hidden; }
+.bar span { display: block; height: 100%; background: var(--amber); border-radius: 2px; }
+.watch {
+  display: inline-block; background: #3a2c07; color: var(--amber); border: 1px solid #6b5310;
+  border-radius: 4px; padding: 0 5px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .05em; margin-left: 6px; vertical-align: 1px;
+}
+.formula-line { font-variant-numeric: tabular-nums; margin: 0 0 12px; }
+.formula-line strong { color: var(--amber); }
 .detail {
   margin-top: 24px; background: var(--panel); border: 1px solid var(--amber);
   border-radius: var(--radius); padding: 20px 22px;

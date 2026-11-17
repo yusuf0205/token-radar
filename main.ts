@@ -96,6 +96,6 @@ writeFileSync(
 
 process.stdout.write(
   `token radar: ${snapshot.protocols.length} protocols in the snapshot, ${snapshot.watchlist.length} on the watchlist\n` +
-    `token radar: board of ${board.length} rows (${radar.early_size} below the floor, ${radar.live_size} live-token protocols set aside)\n` +
+    `token radar: board of ${board.length} rows (${radar.early_size} outside the watchlist, ${radar.live_size} live-token protocols set aside)\n` +
     `token radar: wrote ${join(outDir, 'board.json')}, ${join(outDir, 'data.js')}, ${join(outDir, 'dashboard')} (${dashboardFiles.length} files), ${join(outDir, 'screenshots')} (${shots.length} images), ${join(outDir, 'dossier.json')}\n`,
 );

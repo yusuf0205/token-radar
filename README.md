@@ -4,27 +4,38 @@ A token launch radar for the make.fun `token-radar-01` bounty. It reads a frozen
 snapshot of 758 protocols, ranks the ones that record no token by an implied value, and shows
 a reader how to farm each one.
 
-## The model (radar-2)
+## The model (radar-3)
 
 Implied value is anchored in the market, not in a flat multiple of TVL. For each category, the
 model takes the median market-cap-to-TVL ratio of the snapshot's own live-token protocols in
-that category (three or more of them, else the median across all live-token protocols, 0.214).
-A protocol's base value is its TVL times its category's ratio. Two adjustments follow:
+that category (three or more of them, else the median across all live-token protocols, 0.205).
+A protocol's base value is its TVL times its category's ratio. Five adjustments follow, all
+from the snapshot's own figures:
 
 - **Growth:** the 7-day TVL change, clamped to -50% ... +100%, feeds a factor of
   1 + change x 0.6.
 - **Tenure:** the longer a protocol has run with no token, the more value has accrued before any
   launch: a factor of 1 + (days with no token, capped at 4 years) / 4 years x 0.5. A protocol
   with no listing date is scored at 365 days.
+- **Breadth:** each extra chain a protocol runs on adds 0.04, up to five extra chains.
+- **Leadership:** the protocol's share of its category's total TVL, capped at one half, feeds
+  a factor of 1 + share x 0.25.
+- **Momentum:** the median 7-day change of live-token protocols in the same category, clamped
+  to -20% ... +50%, feeds a factor of 1 + change x 0.3; a thin category takes the global
+  median change instead.
 
-Implied value = TVL x category ratio x growth factor x tenure factor, at least $1 and at most
-$50bn. It is this entry's claim, not a prediction: it does not say a token will be issued, or
-when. A protocol that records no token may still have one its DefiLlama record does not carry.
+Implied value = TVL x category ratio x growth x tenure x breadth x leadership x momentum, at
+least $1 and at most $50bn. It is this entry's claim, not a prediction: it does not say a token
+will be issued, or when. A protocol that records no token may still have one its DefiLlama
+record does not carry.
 
-The board covers all 40 protocols on the snapshot's watchlist plus every rankable pre-token
-protocol below the $50m floor (226 rows in all). Rankable means the protocol records no token,
-is not a centralised exchange, and its name does not end in a version marker. Protocols whose
-token already trades are kept apart in the dashboard's "Already trading" view, shown at the
+The board ranks every launch candidate the snapshot holds (227 rows): all 40 protocols on the
+snapshot's watchlist, plus every other candidate above and below the $50m floor. A candidate
+records no token and is not a wrapped, staked or bridged product of a token that already
+trades: centralised exchanges, bridges and canonical bridges, versioned pools, names carrying
+a whole word wrapped, staked or staking, and names beginning with an exchange's name are left
+out, because they are not protocols waiting on a launch of their own. Protocols whose token
+already trades are kept apart in the dashboard's "Already trading" view, shown at the
 market's own value.
 
 ## Run it
@@ -50,8 +61,11 @@ This writes `out/board.json` (the ranked board), `out/data.js` (the dashboard's 
 
 ## Farm plans
 
-Each protocol gets seven steps, each naming the action, what it costs and how long it takes.
-The steps are derived from the protocol's own record (category, chains, TVL, age): the core
-position differs by category (supply for lending, liquidity for a DEX, stake for liquid
+Each protocol gets seven to ten steps, each naming the action, what it costs and how long it
+takes. The steps are derived from the protocol's own record (category, chains, TVL, age): the
+core position differs by category (supply for lending, liquidity for a DEX, stake for liquid
 staking, bridge for a bridge, and so on), the capital is sized by TVL, and the hold period by
-age. No plan promises a token or an airdrop.
+age. The count varies with the protocol: a small position skips the second move, a protocol
+on three or more chains adds a step on its second chain, a protocol over $1bn of TVL adds a
+step splitting the deposit, and a protocol younger than 90 days adds a step watching its
+docs. No plan promises a token or an airdrop.
